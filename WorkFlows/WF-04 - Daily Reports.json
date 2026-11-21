@@ -1,0 +1,238 @@
+{
+  "name": "WF-04 - Daily Reports",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        32,
+        0
+      ],
+      "id": "44d89034-b3b4-430d-b7dc-d992e5b05488",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1uOItRMj902FB12kVdXtfuXTvecnunPgCZefawdduXHY",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Members",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uOItRMj902FB12kVdXtfuXTvecnunPgCZefawdduXHY/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        256,
+        0
+      ],
+      "id": "f76ef44e-2c6e-4cf8-a324-078aae2c7bf3",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HCJdH2C6w4zuxgnV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst members = $input.all();\n\nconst today = new Date().toLocaleDateString(\"en-CA\", {\n  timeZone: \"Asia/Kolkata\"\n});\n\nconst [year, month, day] = today.split(\"-\").map(Number);\n\nconst todayDate = Date.UTC(year, month - 1, day);\n\nlet totalMembers = members.length;\nlet activeMembers = 0;\nlet expiredMembers = 0;\nlet expiringInNext7Days = 0;\n\nfor (const item of members) {\n  const member = item.json;\n\n  if (!member.Expiry_Date) continue;\n\n  const [y, m, d] = member.Expiry_Date.split(\"-\").map(Number);\n\n  const expiryDate = Date.UTC(y, m - 1, d);\n\n  const daysRemaining = Math.round(\n    (expiryDate - todayDate) / (1000 * 60 * 60 * 24)\n  );\n\n  if (daysRemaining < 0) {\n    expiredMembers++;\n  } else {\n    if (member.Membership_Status === \"Active\") {\n      activeMembers++;\n    }\n\n    if (\n      member.Membership_Status === \"Active\" &&\n      daysRemaining <= 7\n    ) {\n      expiringInNext7Days++;\n    }\n  }\n}\n\nreturn [{\n  json: {\n    Report_Date: today,\n    Total_Members: totalMembers,\n    Active_Members: activeMembers,\n    Expired_Members: expiredMembers,\n    Expiring_In_Next_7_Days: expiringInNext7Days\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "665d7e86-4181-435d-bfa9-7212b2d63d27",
+      "name": "Calculate Member Statistics"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1uOItRMj902FB12kVdXtfuXTvecnunPgCZefawdduXHY",
+          "mode": "list",
+          "cachedResultName": "GymFlow_DB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uOItRMj902FB12kVdXtfuXTvecnunPgCZefawdduXHY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 89890752,
+          "mode": "list",
+          "cachedResultName": "Payments",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uOItRMj902FB12kVdXtfuXTvecnunPgCZefawdduXHY/edit#gid=89890752"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        240,
+        208
+      ],
+      "id": "a6668ffa-8f29-464e-9686-f2131e47f459",
+      "name": "Get row(s) in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HCJdH2C6w4zuxgnV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst payments = $input.all();\n\nconst today = new Date().toLocaleDateString(\"en-CA\", {\n  timeZone: \"Asia/Kolkata\"\n});\n\nlet paymentsToday = 0;\nlet totalRevenue = 0;\n\nfor (const item of payments) {\n  const payment = item.json;\n\n  if (!payment.Payment_Date || !payment.Amount) {\n    continue;\n  }\n\n  const paymentDate = String(payment.Payment_Date).slice(0, 10);\n  const amount = Number(payment.Amount);\n\n  if (!Number.isFinite(amount)) {\n    continue;\n  }\n\n  if (paymentDate === today) {\n    paymentsToday++;\n    totalRevenue += amount;\n  }\n}\n\nreturn [{\n  json: {\n    Report_Date: today,\n    Payments_Today: paymentsToday,\n    Revenue_Today: totalRevenue\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        208
+      ],
+      "id": "3f5b708a-d831-4cdd-a49e-58afa1466095",
+      "name": "Calculate Daily Revenue"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        688,
+        64
+      ],
+      "id": "2707a9fc-de73-4aeb-bc4c-c90e80e74c11",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "=\nGYMFLOW - DAILY REPORT\n\nDate: {{ $json.Report_Date }}\n\nMEMBERSHIP SUMMARY\n-------------------------\nTotal Members: {{ $json.Total_Members }}\nActive Members: {{ $json.Active_Members }}\nExpired Members: {{ $json.Expired_Members }}\nExpiring in Next 7 Days: {{ $json.Expiring_In_Next_7_Days }}\n\nPAYMENT SUMMARY\n-------------------------\nPayments Received Today: {{ $json.Payments_Today }}\nTotal Revenue Today: ₹{{ $json.Revenue_Today }}\n\n-------------------------\nGymFlow Automated Report\n",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        912,
+        64
+      ],
+      "id": "8a2f28bc-be93-4f8d-87a8-9e880f174078",
+      "name": "Send a text message",
+      "webhookId": "6d70249f-7091-4f4f-938f-dded1b080925",
+      "credentials": {
+        "telegramApi": {
+          "id": "HsUQkOZ91G0dGyTg",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Calculate Member Statistics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Member Statistics": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Calculate Daily Revenue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Daily Revenue": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "244e02c5-c274-44f3-8f84-603e83123b18",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "224df9d97ba37ca2c6cb8a9f233da5ced593670d715f00dbc988ff3a4163eec7"
+  },
+  "nodeGroups": [],
+  "id": "TFpboyn50yLRYYHw",
+  "tags": []
+}

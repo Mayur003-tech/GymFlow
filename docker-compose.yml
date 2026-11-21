@@ -1,0 +1,18 @@
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    container_name: gymflow-n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - GENERIC_TIMEZONE=Asia/Kolkata
+      - TZ=Asia/Kolkata
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      - WEBHOOK_URL=https://curvature-gravel-pregame.ngrok-free.dev/
+      - N8N_PROXY_HOPS=1
+    volumes:
+      - gymflow_data:/home/node/.n8n
+
+volumes:
+  gymflow_data:

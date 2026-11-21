@@ -1,0 +1,240 @@
+{
+  "name": "WF-01 - Member Registration",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "GymFlow Member Registration",
+        "formDescription": "Register a new gym member",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Full Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Phone Number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Join Date",
+              "fieldType": "date",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Membership Plan",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Daily"
+                  },
+                  {
+                    "option": "Weekly"
+                  },
+                  {
+                    "option": "Monthly"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b683b3cf-7bfa-4dcb-805b-870e3320ef7c",
+      "name": "On form submission",
+      "webhookId": "ecc13dcf-6194-443d-906f-cd189d8e171c"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst planDurations = {\n  Daily: 1,\n  Weekly: 7,\n  Monthly: 30\n};\n\nconst members = $input.all();\n\nreturn members.map(item => {\n  const data = item.json;\n\n  const name = data[\"Full Name\"];\n  const phone = String(data[\"Phone Number\"]);\n  const joinDate = data[\"Join Date\"];\n  const plan = data[\"Membership Plan\"];\n\n  // Validate membership plan\n  if (!planDurations[plan]) {\n    throw new Error(`Invalid membership plan: ${plan}`);\n  }\n\n  // Calculate expiry date\n  const [year, month, day] = joinDate.split(\"-\").map(Number);\n\n  const expiry = new Date(\n    Date.UTC(year, month - 1, day + planDurations[plan] - 1)\n  );\n\n  const expiryDate = expiry.toISOString().slice(0, 10);\n\n  // Generate unique Member ID\n  const memberId = `GYM-${Date.now()}-${Math.floor(Math.random() * 1000)}`;\n\n  return {\n    json: {\n      Member_ID: memberId,\n      Name: name,\n      Phone: phone,\n      Join_Date: joinDate,\n      Plan: plan,\n      Expiry_Date: expiryDate,\n      Payment_Status: \"Pending\",\n      Membership_Status: \"Active\",\n      Registered_At: data.submittedAt\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "fa18829b-a696-4afa-b1ad-6187006d76af",
+      "name": "Process Member Data"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1uOItRMj902FB12kVdXtfuXTvecnunPgCZefawdduXHY",
+          "mode": "list",
+          "cachedResultName": "GymFlow_DB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uOItRMj902FB12kVdXtfuXTvecnunPgCZefawdduXHY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Members",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uOItRMj902FB12kVdXtfuXTvecnunPgCZefawdduXHY/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Member_ID",
+              "displayName": "Member_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Join_Date",
+              "displayName": "Join_Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Plan",
+              "displayName": "Plan",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Expiry_Date",
+              "displayName": "Expiry_Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Payment_Status",
+              "displayName": "Payment_Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Membership_Status",
+              "displayName": "Membership_Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Registered_At",
+              "displayName": "Registered_At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        448,
+        0
+      ],
+      "id": "f7b45fed-e594-4fc4-af06-339f4253218f",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HCJdH2C6w4zuxgnV",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Process Member Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Member Data": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "943be0d2-bba0-47a1-a62e-d2f0c5eab516",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "224df9d97ba37ca2c6cb8a9f233da5ced593670d715f00dbc988ff3a4163eec7"
+  },
+  "nodeGroups": [],
+  "id": "1A2P6joNeEbxe3bu",
+  "tags": []
+}

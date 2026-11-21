@@ -1,0 +1,448 @@
+{
+  "name": "WF-03 - Payment Management",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "GymFlow Payment Registration",
+        "formDescription": "Submit payment details to record membership transactions, update payment status, and maintain accurate payment history.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Member ID",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Amount Paid",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Payment Date",
+              "fieldType": "date",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Payment Method",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Cash"
+                  },
+                  {
+                    "option": "UPI"
+                  },
+                  {
+                    "option": "Bank Transfer"
+                  },
+                  {
+                    "option": "Card"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Transaction Reference"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        0
+      ],
+      "id": "beb963ab-982e-40ad-bb4e-231792b8ad6c",
+      "name": "GymFlow Payment Registration",
+      "webhookId": "9c8d0d92-1d82-4e25-b346-5b02d7028c1a"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1uOItRMj902FB12kVdXtfuXTvecnunPgCZefawdduXHY",
+          "mode": "list",
+          "cachedResultName": "GymFlow_DB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uOItRMj902FB12kVdXtfuXTvecnunPgCZefawdduXHY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Members",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uOItRMj902FB12kVdXtfuXTvecnunPgCZefawdduXHY/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Member_ID",
+              "lookupValue": "={{ $json[\"Member ID\"] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        0
+      ],
+      "id": "ec0c77f0-11b8-4a07-b1a6-4e6c4ec41a55",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HCJdH2C6w4zuxgnV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1uOItRMj902FB12kVdXtfuXTvecnunPgCZefawdduXHY",
+          "mode": "list",
+          "cachedResultName": "GymFlow_DB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uOItRMj902FB12kVdXtfuXTvecnunPgCZefawdduXHY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Members",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uOItRMj902FB12kVdXtfuXTvecnunPgCZefawdduXHY/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Payment_Status": "paid",
+            "Member_ID": "={{ $json.Member_ID }}",
+            "Name": "={{ $json.Name }}",
+            "Phone": "={{ $json.Phone }}",
+            "Join_Date": "={{ $json.Join_Date }}",
+            "Plan": "={{ $json.Plan }}",
+            "Expiry_Date": "={{ $json.Expiry_Date }}",
+            "Membership_Status": "={{ $json.Membership_Status }}",
+            "Registered_At": "={{ $json.Registered_At }}"
+          },
+          "matchingColumns": [
+            "Member_ID"
+          ],
+          "schema": [
+            {
+              "id": "Member_ID",
+              "displayName": "Member_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Join_Date",
+              "displayName": "Join_Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Plan",
+              "displayName": "Plan",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Expiry_Date",
+              "displayName": "Expiry_Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Payment_Status",
+              "displayName": "Payment_Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Membership_Status",
+              "displayName": "Membership_Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Registered_At",
+              "displayName": "Registered_At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        448,
+        0
+      ],
+      "id": "a56cf0cd-d792-4c21-b7a7-c15590f74ec6",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HCJdH2C6w4zuxgnV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1uOItRMj902FB12kVdXtfuXTvecnunPgCZefawdduXHY",
+          "mode": "list",
+          "cachedResultName": "GymFlow_DB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uOItRMj902FB12kVdXtfuXTvecnunPgCZefawdduXHY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 89890752,
+          "mode": "list",
+          "cachedResultName": "Payments",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uOItRMj902FB12kVdXtfuXTvecnunPgCZefawdduXHY/edit#gid=89890752"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Payment_ID": "={{ 'PAY-' + Date.now() }}",
+            "Member_ID": "={{ $('GymFlow Payment Registration').item.json[\"Member ID\"] }}",
+            "Amount": "={{ $('GymFlow Payment Registration').item.json[\"Amount Paid\"] }}",
+            "Payment_Date": "={{ $('GymFlow Payment Registration').item.json[\"Payment Date\"] }}",
+            "Payment_Method": "={{ $('GymFlow Payment Registration').item.json[\"Payment Method\"] }}",
+            "Transaction_Reference": "={{ $('GymFlow Payment Registration').item.json[\"Transaction Reference\"] }}",
+            "Recorded_At": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Payment_ID",
+              "displayName": "Payment_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Member_ID",
+              "displayName": "Member_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Payment_Date",
+              "displayName": "Payment_Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Payment_Method",
+              "displayName": "Payment_Method",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Transaction_Reference",
+              "displayName": "Transaction_Reference",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Recorded_At",
+              "displayName": "Recorded_At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        672,
+        0
+      ],
+      "id": "cbd40468-f005-4687-8e71-7729e4837a8e",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HCJdH2C6w4zuxgnV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "=GymFlow - Payment Received\n\nMember ID: {{ $('GymFlow Payment Registration').item.json[\"Member ID\"] }}\n\nAmount Paid: ₹{{ $('GymFlow Payment Registration').item.json[\"Amount Paid\"] }}\n\nPayment Date: {{ $('GymFlow Payment Registration').item.json[\"Payment Date\"] }}\n\nPayment Method: {{ $('GymFlow Payment Registration').item.json[\"Payment Method\"] }}\n\nTransaction Reference: {{ $('GymFlow Payment Registration').item.json[\"Transaction Reference\"] }}\n\nStatus: SUCCESS",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        896,
+        0
+      ],
+      "id": "ac0a671c-d339-44d1-9996-99dad0e241de",
+      "name": "Send a text message",
+      "webhookId": "520fe77d-5a4e-4560-ac6f-a4a57a825008",
+      "credentials": {
+        "telegramApi": {
+          "id": "HsUQkOZ91G0dGyTg",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "GymFlow Payment Registration": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "8267e4c4-edb2-447c-a64d-2f1bededb544",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "224df9d97ba37ca2c6cb8a9f233da5ced593670d715f00dbc988ff3a4163eec7"
+  },
+  "nodeGroups": [],
+  "id": "cxye1XBUBM5m1vLZ",
+  "tags": []
+}

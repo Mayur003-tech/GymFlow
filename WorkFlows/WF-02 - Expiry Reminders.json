@@ -1,0 +1,141 @@
+{
+  "name": "WF-02 - Expiry Reminders",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "ade66023-49cd-4480-8d1f-8dc75eee7e77",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1uOItRMj902FB12kVdXtfuXTvecnunPgCZefawdduXHY",
+          "mode": "list",
+          "cachedResultName": "GymFlow_DB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uOItRMj902FB12kVdXtfuXTvecnunPgCZefawdduXHY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Members",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uOItRMj902FB12kVdXtfuXTvecnunPgCZefawdduXHY/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        0
+      ],
+      "id": "d79ee06e-b1fe-4fc9-adf5-a8ab561d5a26",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HCJdH2C6w4zuxgnV",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst members = $input.all();\n\n// Get today's date in YYYY-MM-DD format (India timezone)\nconst today = new Date().toLocaleDateString(\"en-CA\", {\n  timeZone: \"Asia/Kolkata\"\n});\n\n// Reminder days\nconst reminderDays = [7, 3, 1, 0];\n\nconst results = [];\n\nfor (const item of members) {\n  const member = item.json;\n\n  // Only process active memberships\n  if (member.Membership_Status !== \"Active\") {\n    continue;\n  }\n\n  if (!member.Expiry_Date) {\n    continue;\n  }\n\n  // Convert expiry date into UTC midnight\n  const [year, month, day] = member.Expiry_Date\n    .split(\"-\")\n    .map(Number);\n\n  const expiryDate = Date.UTC(year, month - 1, day);\n\n  const [todayYear, todayMonth, todayDay] = today\n    .split(\"-\")\n    .map(Number);\n\n  const todayDate = Date.UTC(\n    todayYear,\n    todayMonth - 1,\n    todayDay\n  );\n\n  // Calculate remaining days\n  const daysRemaining = Math.round(\n    (expiryDate - todayDate) / (1000 * 60 * 60 * 24)\n  );\n\n  // Check whether a reminder is required\n  if (reminderDays.includes(daysRemaining)) {\n    results.push({\n      json: {\n        Member_ID: member.Member_ID,\n        Name: member.Name,\n        Phone: member.Phone,\n        Expiry_Date: member.Expiry_Date,\n        Days_Remaining: daysRemaining,\n        Reminder_Type:\n          daysRemaining === 7 ? \"7-Day Reminder\" :\n          daysRemaining === 3 ? \"3-Day Reminder\" :\n          daysRemaining === 1 ? \"1-Day Reminder\" :\n          \"Expiry Today\"\n      }\n    });\n  }\n}\n\nreturn results;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "2ea5fa17-da62-46d1-9501-afbc0cc59c75",
+      "name": "Check Expiry Dates"
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "=GymFlow Membership Reminder\n\nMember: {{ $json.Name }}\nPhone: {{ $json.Phone }}\nExpiry Date: {{ $json.Expiry_Date }}\n\nDays Remaining: {{ $json.Days_Remaining }}\nReminder: {{ $json.Reminder_Type }}\n",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        672,
+        0
+      ],
+      "id": "ca0bf430-f947-459e-a99e-32d5d3ca5dcd",
+      "name": "Send a text message",
+      "webhookId": "e9e82078-fa4d-4ebd-8a09-4d3eaf7f1018",
+      "credentials": {
+        "telegramApi": {
+          "id": "HsUQkOZ91G0dGyTg",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Check Expiry Dates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Expiry Dates": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "16a962b5-8aa2-4cc0-a49e-d36bd13a43d9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "224df9d97ba37ca2c6cb8a9f233da5ced593670d715f00dbc988ff3a4163eec7"
+  },
+  "nodeGroups": [],
+  "id": "FZbARqcHWGr15G4R",
+  "tags": []
+}
